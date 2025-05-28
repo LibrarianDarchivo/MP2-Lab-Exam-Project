@@ -10,10 +10,8 @@
 
 using namespace std;
 
-// Mutex to synchronize console I/O across threads
 static mutex io_mutex;
 
-// Clears the terminal screen (cross-platform)
 inline void clearScreen()
 {
 #ifdef _WIN32
@@ -23,7 +21,6 @@ inline void clearScreen()
 #endif
 }
 
-// Simple helper to get an integer choice, reprompting on invalid input
 int getMenuChoice()
 {
     int choice;
@@ -46,7 +43,6 @@ int getMenuChoice()
     }
 }
 
-// Read–Write lock with writer preference
 class RWLock
 {
     mutex              mtx;
