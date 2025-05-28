@@ -74,15 +74,17 @@ class PatientManager {
         }
 
         void updatePatient(int id, const string& name, int age) {
-            lockMonitor.patientLock = true;
-            unique_lock lock(patientMutex);
-            if (patients.find(id) != patients.end()) {
-                patients[id] = {id, name, age};
-                cout << "Patient updated: " << name << "\n";
-            } else {
-                cout << "Patient not found.\n";
-            }
-            lockMonitor.patientLock = false;
+                if (patientMutex.try_lock()) {
+                    if (patients.find(id) != patients.end()) {
+                        patients[id] = {id, name, age};
+                        cout << "Patient updated: " << name << "\n";
+                    } else {
+                        cout << "Patient not found.\n";
+                    }
+                    patientMutex.unlock();
+                } else {
+                    cout << "Patient database is busy. Try again later.\n";
+                }
         }
 
         void removePatient(int id) {
@@ -125,16 +127,18 @@ class AppointmentManager {
         }
 
         void updateAppointment(int id, const string& newDatetime, const string& newReason) {
-            lockMonitor.appointmentLock = true;
-            unique_lock lock(appMutex);
-            if (appointments.find(id) != appointments.end()) {
-                appointments[id].datetime = newDatetime;
-                appointments[id].reason = newReason;
-                cout << "Appointment updated.\n";
-            } else {
-                cout << "Appointment not found.\n";
-            }
-            lockMonitor.appointmentLock = false;
+                if (appMutex.try_lock()) {
+                    if (appointments.find(id) != appointments.end()) {
+                        appointments[id].datetime = newDatetime;
+                        appointments[id].reason = newReason;
+                        cout << "Appointment updated.\n";
+                    } else {
+                        cout << "Appointment not found.\n";
+                    }
+                    appMutex.unlock();
+                } else {
+                    cout << "Appointments are currently being updated. Try again later.\n";
+                }
         }
 
         void cancelAppointment(int id) {
@@ -178,15 +182,17 @@ class RecordManager {
         }
 
         void updateRecord(int patientId, const string& entry) {
-            lockMonitor.recordLock = true;
-            unique_lock lock(recordMutex);
-            if (records.find(patientId) != records.end()) {
-                records[patientId].entries.push_back(entry);
-                cout << "Medical record updated for Patient ID " << patientId << ".\n";
-            } else {
-                cout << "No record found. Add one first.\n";
-            }
-            lockMonitor.recordLock = false;
+                if (recordMutex.try_lock()) {
+                    if (records.find(patientId) != records.end()) {
+                        records[patientId].entries.push_back(entry);
+                        cout << "Medical record updated for Patient ID " << patientId << ".\n";
+                    } else {
+                        cout << "No record found. Add one first.\n";
+                    }
+                    recordMutex.unlock();
+                } else {
+                    cout << "Record system is busy. Try again later.\n";
+                }
         }
 
         void viewRecord(int patientId) {
