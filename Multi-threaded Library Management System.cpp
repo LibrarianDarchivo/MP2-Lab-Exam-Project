@@ -201,51 +201,25 @@ int Library::findBookIndex(const string &title)
 }
 
 // Password strength check
-
 bool Library::validPassword(const string &pwd)
 {
+    if (pwd.size() < 8) return false;
 
-    // 2) Category flags
-    bool hasUpper   = false;
-    bool hasLower   = false;
-    bool hasDigit   = false;
-    bool hasSpecial = false;
-    bool passwordLength = true;
-    
-    // 1) Quick length check
-    if (pwd.size() < 8)
+    bool upper   = false;
+    bool lower   = false;
+    bool digit   = false;
+    bool special = false;
+
+    for (char c : pwd)
     {
-        lock_guard<mutex> io(io_mutex);
-        passwordLength = false;
+        upper   |= isupper((unsigned char)c);
+        lower   |= islower((unsigned char)c);
+        digit   |= isdigit((unsigned char)c);
+        special |= ispunct((unsigned char)c);
     }
 
-    for (unsigned char c : pwd)
-    {
-        if (isupper(c))   hasUpper   = true;
-        if (islower(c))   hasLower   = true;
-        if (isdigit(c))   hasDigit   = true;
-        if (ispunct(c))   hasSpecial = true;
-    }
-
-    // 3) If any are missing, list exactly which ones then  return false
-    if (!hasUpper || !hasLower || !hasDigit || !hasSpecial || !passwordLength)
-    {
-    		
-        cout << "Weak password: ";
-        if(!passwordLength) cout << "must be at least 8 characters long, ";
-        if (!hasUpper || !hasLower || !hasDigit || !hasSpecial) cout << " must include at least:\n";
-        if (!hasUpper)   cout << "  - one uppercase letter\n";
-        if (!hasLower)   cout << "  - one lowercase letter\n";
-        if (!hasDigit)   cout << "  - one digit\n";
-        if (!hasSpecial) cout << "  - one special character (e.g. !@#$%)\n";
-        
-        cout << flush;
-        return false;
-    }
-
-    return true;
+    return upper && lower && digit && special;
 }
-
 
 // Register a new user
 void Library::registerUser()
@@ -253,8 +227,6 @@ void Library::registerUser()
     lock_guard<mutex> lk(accountMutex);
 
     string first, middle, last, pwd, confirm;
-
-    // Gather name
     {
         lock_guard<mutex> io(io_mutex);
         cout << "First Name: " << flush;
@@ -273,25 +245,26 @@ void Library::registerUser()
     }
     getline(cin, last);
 
-    // Auto-generate username
     string uname = first.substr(0,1) + middle.substr(0,1) + last;
     {
         lock_guard<mutex> io(io_mutex);
-        cout << "Your username: " << uname << "\n" << flush;
+        cout << "Your username: " << uname << '\n' << flush;
     }
 
-    // Password loop
-       while (true)
+    while (true)
     {
         {
             lock_guard<mutex> io(io_mutex);
-            cout << "Password (Minimum of 8 characters, must include  upper, lower, digit, special): " << flush;
+            cout << "Password (Minimum of 8 chars, must include upper/lower/digit/special): " << flush;
         }
         getline(cin, pwd);
 
-        // validPassword() now prints why  it’s bad and returns false
         if (!validPassword(pwd))
+        {
+            lock_guard<mutex> io(io_mutex);
+            cout << "Weak password.\n" << flush;
             continue;
+        }
 
         {
             lock_guard<mutex> io(io_mutex);
@@ -303,13 +276,13 @@ void Library::registerUser()
         {
             lock_guard<mutex> io(io_mutex);
             cout << "Passwords do not match.\n" << flush;
-            continue;
         }
-
-        break;
+        else
+        {
+            break;
+        }
     }
 
-    //save the account
     accounts.push_back({
         uname,
         first,
@@ -317,15 +290,14 @@ void Library::registerUser()
         last,
         pwd,
         static_cast<int>(accounts.size()) + 1,
-        false,  // loggedIn
-        false,  // isAdmin
-        {}
+        false,
+        false,
+        {}   // start with no borrowed books
     });
 
     {
         lock_guard<mutex> io(io_mutex);
-        cout << "User registered with ID: "
-             << accounts.back().id << "\n" << flush;
+        cout << "User registered with ID: " << accounts.back().id << '\n' << flush;
     }
 }
 
@@ -353,7 +325,6 @@ int Library::loginUser()
         {
             acct.loggedIn = true;
             lock_guard<mutex> io(io_mutex);
-            clearScreen();
             cout << "Welcome, " << acct.firstName << "!\n" << flush;
             return acct.id - 1;
         }
@@ -377,8 +348,8 @@ void Library::listAllBooks()
         cout << "No books in the library.\n";
     }
     else
-    {	
-        constexpr int ID_W = 4, T_W = 40, A_W = 30, C_W = 6;
+    {
+        constexpr int ID_W = 4, T_W = 40, A_W = 20, C_W = 6;
         cout << left
              << setw(ID_W) << "ID"
              << setw(T_W) << "Title"
@@ -601,7 +572,7 @@ void Library::displayLockStatus()
         lock_guard<mutex> io(io_mutex);
         cout << "Write lock is free.\n" << flush;
     }
-    else
+    else	
     {
         lock_guard<mutex> io(io_mutex);
         cout << "Write lock is held.\n" << flush;
@@ -630,6 +601,7 @@ void Library::userSession(int idx)
 
     while (accounts[idx].loggedIn)
     {
+        clearScreen();
 
         if (accounts[idx].isAdmin)
         {
