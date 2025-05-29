@@ -1,6 +1,6 @@
 #include <condition_variable>
 #include <iostream>
-#include <thread> // idk what to do with this tbh -- how will I use user input if naka threads tho??
+#include <thread>
 #include <mutex>
 #include <map>
 #include <shared_mutex>
@@ -10,7 +10,6 @@
 #include <set>
 #include <chrono>
 using namespace std;
-
 
 // =============================================
 //                    CLASSES
@@ -416,5 +415,49 @@ int main() {
             cout << "Invalid choice.\n";
         }
     }
+    // Simulate concurrency with threads
+    cout << "\n--- Simulating concurrent operations ---\n";
+
+    // Thread 1: Register multiple patients
+    auto patientThread = [&]() {
+        for (int i = 0; i < 5; ++i) {
+            pm.registerPatient("Patient_" + to_string(i), 20 + i);
+            this_thread::sleep_for(chrono::milliseconds(100));
+        }
+    };
+
+    // Thread 2: Schedule appointments
+    auto appointmentThread = [&]() {
+        for (int i = 1; i <= 5; ++i) {
+            am.scheduleAppointment(i, "2025-06-" + to_string(10 + i), "Checkup");
+            this_thread::sleep_for(chrono::milliseconds(80));
+        }
+    };
+
+    // Thread 3: Add record entries
+    auto recordThread = [&]() {
+        for (int i = 1; i <= 5; ++i) {
+            rm.addRecord(i, "Patient_" + to_string(i), 20 + i);
+            rm.updateRecord(i, "Initial visit - all clear");
+            this_thread::sleep_for(chrono::milliseconds(90));
+        }
+    };
+
+    // Launch threads
+    thread t1(patientThread);
+    thread t2(appointmentThread);
+    thread t3(recordThread);
+
+    // Join threads
+    t1.join();
+    t2.join();
+    t3.join();
+
+    cout << "\n--- Concurrent operations finished ---\n";
+
+    // Optional: Display lock status and check for deadlocks
+    lockMonitor.displayLockStatus();
+    lockMonitor.checkDeadlocks();
+
     return 0;
 }
