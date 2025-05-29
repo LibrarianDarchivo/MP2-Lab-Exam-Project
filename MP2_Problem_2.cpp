@@ -306,16 +306,49 @@ int main() {
                     cout << "Enter Name: ";
                     cin.ignore();
                     getline(cin, name);
-                    cout << "Enter Age: ";
-                    cin >> age;
-                    pm.registerPatient(name, age);
+
+                    while (true) {
+                        cout << "Enter Age: ";
+                        if (cin >> age) {
+                            break;
+                        } else {
+                            cout << "Invalid. Please enter a valid age.\n";
+                            cin.clear();              // Clear error
+                            cin.ignore(1000, '\n');   // Discard invalid input
+                        }
+                    }
+                    pm.registerPatient(name,age);
                 } else if (patientChoice == 2) { // Update Patient Information
-                    cout << "Enter ID, New Name, New Age: ";
-                    cin >> id >> name >> age;
+                    cout << "Enter ID: ";
+                    while (!(cin >> id)) {
+                        cout << "Invalid ID. Please enter a number: ";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
+
+                    cout << "Enter New Name: ";
+                    cin.ignore(); // Clear newline left by previous input
+                    getline(cin, name);
+
+                    cout << "Enter New Age: ";
+                    while (!(cin >> age)) {
+                        cout << "Invalid Age. Please enter a number: ";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
+
                     pm.updatePatient(id, name, age);
                 } else if (patientChoice == 3) { // Remove EXISTING Patient(s)
-                    cout << "Enter ID to remove: ";
-                    cin >> id;
+                    while (true) {
+                        cout << "Enter ID: ";
+                        if (cin >> id) {
+                            break;
+                        } else {
+                            cout << "Invalid. Please enter a valid ID.\n";
+                            cin.clear();              // Clear error
+                            cin.ignore(1000, '\n');   // Discard invalid input
+                        }
+                    }
                     pm.removePatient(id);
                 } else if (patientChoice == 4) { // List ALL EXISTING patients
                     pm.listPatient();
