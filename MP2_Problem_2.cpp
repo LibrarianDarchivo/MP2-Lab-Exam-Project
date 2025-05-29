@@ -477,7 +477,7 @@ int main() {
     // Simulate concurrency with threads
     cout << "\n--- Simulating concurrent operations ---\n";
 
-    // Thread 1: Register multiple patients
+    // Thread 1 - Register Multiple Patients
     auto patientThread = [&]() {
         for (int i = 0; i < 5; ++i) {
             pm.registerPatient("Patient_" + to_string(i), 20 + i);
@@ -485,7 +485,7 @@ int main() {
         }
     };
 
-    // Thread 2: Schedule appointments
+    // Thread 2 - Schedule Appointments
     auto appointmentThread = [&]() {
         for (int i = 1; i <= 5; ++i) {
             am.scheduleAppointment(i, "2025-06-" + to_string(10 + i), "Checkup");
@@ -493,7 +493,7 @@ int main() {
         }
     };
 
-    // Thread 3: Add record entries
+    // Thread 3 - Add Record Entries
     auto recordThread = [&]() {
         for (int i = 1; i <= 5; ++i) {
             rm.addRecord(i, "Patient_" + to_string(i), 20 + i);
