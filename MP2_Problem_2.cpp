@@ -367,32 +367,58 @@ int main() {
                 if (appointmentChoice == 1) { // Schedule new appointment
                     int patientId;
                     string date, reason;
+
                     cout << "Enter Patient ID: ";
-                    cin >> patientId;
-                    cin.ignore();
+                    while (!(cin >> patientId)) {
+                        cout << "Invalid Patient ID. Please enter a number: ";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
+                    cin.ignore(); // Clear newline after integer input
+
                     cout << "Enter Appointment Date: ";
                     getline(cin, date);
+
                     cout << "Enter Reason: ";
                     getline(cin, reason);
+
                     am.scheduleAppointment(patientId, date, reason);
+
                 } else if (appointmentChoice == 2) { // Update EXISTING appointment
                     int id;
                     string newDate, newReason;
+
                     cout << "Enter Appointment ID: ";
-                    cin >> id;
+                    while (!(cin >> id)) {
+                        cout << "Invalid ID. Please enter a number: ";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
                     cin.ignore();
+
                     cout << "Enter New Date: ";
                     getline(cin, newDate);
+
                     cout << "Enter New Reason: ";
                     getline(cin, newReason);
+
                     am.updateAppointment(id, newDate, newReason);
+
                 } else if (appointmentChoice == 3) { // Cancel/Remove EXISTING appointment
                     int id;
+
                     cout << "Enter Appointment ID to cancel: ";
-                    cin >> id;
+                    while (!(cin >> id)) {
+                        cout << "Invalid ID. Please enter a number: ";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
+
                     am.cancelAppointment(id);
+
                 } else if (appointmentChoice == 4) { // List ALL EXISTING appointments
                     am.listAppointments();
+
                 } else if (appointmentChoice == 0) {
                     cout << "Returning to main menu...\n";
                 } else {
@@ -476,20 +502,17 @@ int main() {
         }
     };
 
-    // Launch threads
     thread t1(patientThread);
     thread t2(appointmentThread);
     thread t3(recordThread);
 
-    // Join threads
     t1.join();
     t2.join();
     t3.join();
 
     cout << "\n--- Concurrent operations finished ---\n";
-
-    // Optional: Display lock status and check for deadlocks
-    lockMonitor.displayLockStatus();
+                                     // The program will always do the ff:
+    lockMonitor.displayLockStatus(); // Display lock status and check for deadlocks at the end of the program
     lockMonitor.checkDeadlocks();
 
     return 0;
