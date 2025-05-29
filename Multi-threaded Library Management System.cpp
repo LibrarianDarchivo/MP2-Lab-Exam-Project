@@ -349,7 +349,7 @@ void Library::listAllBooks()
     }
     else
     {
-        constexpr int ID_W = 4, T_W = 40, A_W = 20, C_W = 6;
+        constexpr int ID_W = 4, T_W = 40, A_W = 30, C_W = 6;
         cout << left
              << setw(ID_W) << "ID"
              << setw(T_W) << "Title"
